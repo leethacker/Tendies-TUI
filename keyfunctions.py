@@ -180,6 +180,19 @@ def ctrlsfunc(self):
 def ctrlqfunc(self):
     self.ishelpon = not self.ishelpon
 
+def ctrlxfunc(self):
+    line = self.lines[self.cy]
+    r = tkinter.Tk()
+    r.withdraw()
+    r.clipboard_clear()
+    r.clipboard_append(line)
+    r.update() # now it stays on the clipboard after the window is closed
+    r.destroy()
+    if len(self.lines) > 1:
+        self.lines.pop(self.cy)
+    else:
+        self.lines[0] = ''
+
 def altzfunc(self):
     self.showkeycodes = not self.showkeycodes
     
