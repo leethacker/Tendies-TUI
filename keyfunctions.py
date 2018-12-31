@@ -174,7 +174,7 @@ def ctrlsfunc(self):
     file.close()
     self.message = 'Saved {}'.format(self.filename)
 
-def ctrlhfunc(self):
+def ctrlqfunc(self):
     self.ishelpon = not self.ishelpon
 
 def altzfunc(self):

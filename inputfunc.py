@@ -13,7 +13,7 @@ def doinput(self, curses):
         elif self.key == curses.KEY_DOWN : downfunc(self)
         elif self.key == curses.KEY_LEFT : leftfunc(self)
         elif self.key == curses.KEY_RIGHT : rightfunc(self)
-        elif self.key == 127 : backfunc(self)
+        elif self.key in [curses.KEY_BACKSPACE, 127] : backfunc(self)
         elif self.ck == '\n' : enterfunc(self)
         elif self.ck == '(' : parenfunc(self)
         elif self.ck == '[' : squarebracketfunc(self)
@@ -30,7 +30,7 @@ def doinput(self, curses):
         elif self.key == 11 : ctrlkfunc(self)
         elif self.key == 19 : ctrlsfunc(self)
         elif self.key == 16 : ctrlpfunc(self)
-        elif self.key == 263 : ctrlhfunc(self)
+        elif self.key == 17 : ctrlqfunc(self)
         elif self.key == 27 : pass
         else:defaultfunc(self)
     elif self.mode == 'terminal':

@@ -1,4 +1,4 @@
-ctrl-h: open/close help
+ctrl-q: open/close help
 escape: save and exit
 ctrl-space: autocomplete
 ctrl-s: save
