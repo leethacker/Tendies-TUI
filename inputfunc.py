@@ -21,7 +21,7 @@ def doinput(self, curses):
         elif self.ck == '"' : quotefunc(self)
         elif self.ck == "'" : apostrophefunc(self)
         elif self.ck == '\t' : tabfunc(self)
-        elif self.key == 353 : shifttabfunc(self)
+        elif self.key == curses.KEY_BTAB : shifttabfunc(self)
         elif self.key == 0 : ctrlspacefunc(self)
         elif self.key == 22 : ctrlvfunc(self)
         elif self.key in [21, 26] : ctrlufunc(self)
