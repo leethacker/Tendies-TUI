@@ -160,7 +160,10 @@ def ctrlyfunc(self):
     else : self.message = 'Cannot redo'
 
 def ctrlkfunc(self):
-    self.lines.pop(self.cy)
+    if len(self.lines) > 1:
+        self.lines.pop(self.cy)
+    else:
+        self.lines[0] = ''
 
 def ctrlpfunc(self):
     if self.mode != 'terminal':
