@@ -68,7 +68,7 @@ class editor:
         self.edith = self.scrh
         #clear screen
         for i in range(self.edith-1):
-            self.scr.addstr(i, 0, ' ' * (self.scrw-1), curses.color_pair(1))
+            self.scr.addstr(i, 0, ' ' * self.scrw, curses.color_pair(1))
         for i in range(self.edith - 1):
             if self.sy + i >= len(self.lines) : break
             #draw edit window
