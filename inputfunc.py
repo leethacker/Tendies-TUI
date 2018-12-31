@@ -31,6 +31,7 @@ def doinput(self, curses):
         elif self.key == 19 : ctrlsfunc(self)
         elif self.key == 16 : ctrlpfunc(self)
         elif self.key == 17 : ctrlqfunc(self)
+        elif 1 <= self.key <= 26 : pass #skip unused ctrl bindings
         elif self.key == 27 : pass
         else:defaultfunc(self)
     elif self.mode == 'terminal':
