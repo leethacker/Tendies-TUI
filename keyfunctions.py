@@ -90,6 +90,11 @@ def apostrophefunc(self):
     l = self.lines[self.cy]
     self.lines[self.cy] = l[:self.cx] + self.ck + "'" + l[self.cx:]
     self.cx += 1
+
+def rightparenfunc(self):
+    l = self.lines[self.cy]
+    if self.cx < len(l) and l[self.cx] == self.ck : self.cx += 1
+    else : defaultfunc(self)
     
 def tabfunc(self):
     l = self.lines[self.cy]
@@ -122,6 +127,7 @@ def ctrlspacefunc(self):
 def ctrlvfunc(self):
     r = tkinter.Tk()
     s = r.clipboard_get()
+    s = s.replace('\t', ' ' * 4)
     r.withdraw()
     r.update()
     r.destroy()
@@ -160,10 +166,13 @@ def ctrlyfunc(self):
     else : self.message = 'Cannot redo'
 
 def ctrlkfunc(self):
-    if len(self.lines) > 1:
-        self.lines.pop(self.cy)
+    if self.cx > 0:
+        self.lines[self.cy] = self.lines[self.cy][:self.cx]
     else:
-        self.lines[0] = ''
+        if len(self.lines) > 1:
+            self.lines.pop(self.cy)
+        else:
+            self.lines[0] = ''
 
 def ctrlpfunc(self):
     if self.mode != 'terminal':
@@ -192,6 +201,27 @@ def ctrlxfunc(self):
         self.lines.pop(self.cy)
     else:
         self.lines[0] = ''
+
+def ctrlrbfunc(self):
+    self.sy -= self.edith
+    if self.sy < 0 : self.sy = 0
+    self.cy = self.sy
+    
+def ctrlbsfunc(self):
+    self.sy += self.edith
+    if self.sy > len(self.lines) - self.edith + 1:
+        self.sy = len(self.lines) - self.edith + 1
+    self.cy = self.sy
+
+def ctrlcfunc(self):
+    line = self.lines[self.cy]
+    r = tkinter.Tk()
+    r.withdraw()
+    r.clipboard_clear()
+    r.clipboard_append(line)
+    r.update() # now it stays on the clipboard after the window is closed
+    r.destroy()
+    self.message = 'Copied: {}...'.format(line[:30])
 
 def altzfunc(self):
     self.showkeycodes = not self.showkeycodes
