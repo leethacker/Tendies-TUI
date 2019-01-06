@@ -127,7 +127,7 @@ def doinput(self, curses):
     if self.mode == 'edit' and not self.key in [curses.KEY_UP, curses.KEY_DOWN,
                         curses.KEY_LEFT, curses.KEY_RIGHT]:
         self.undoq.append(ministate(self.lines, self.cx, self.cy))
-        while len(self.undoq) > 30 : self.undoq.pop(0)
+        while len(self.undoq) > 50 : self.undoq.pop(0)
 
     #autosave after every couple keystrokes
     self.keystrokes += 1

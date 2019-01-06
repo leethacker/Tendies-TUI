@@ -25,7 +25,7 @@ class editor:
         self.key = 0
         self.ck = ''
         f = open(file, 'r')
-        txt = f.read()
+        txt = f.read().replace('\t', ' ' * 4)
         f.close()
         self.filename = file
         self.lines = txt.split('\n')
@@ -84,7 +84,7 @@ class editor:
                                                         line)]
                 for f in found:
                     x = lnlen + f - self.sx
-                    if x >= 0:
+                    if x >= 0 and x <= self.editw - len(h):
                         self.scr.addstr(i, x, h, curses.color_pair(9))
             self.scr.addstr(i+1, lnlen, ' ', curses.color_pair(1))
             ln = str(self.sy + i + 1)
