@@ -9,9 +9,12 @@ ctrl-z: undo
 ctrl-u: undo
 ctrl-y: redo
 ctrl-k: delete to end of line
+ctrl-l: cursor to line start
+ctrl-l (twice): cursor to line end
 ctrl-p: toggle terminal mode
 ctrl-]: page up
 ctrl-\: page down
+ctrl-f: change file
 tab: indent
 shift-tab: unindent
 tab (in terminal mode): history

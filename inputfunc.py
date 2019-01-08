@@ -36,6 +36,8 @@ def doinput(self, curses):
         elif self.key == 29 : ctrlrbfunc(self)
         elif self.key == 28 : ctrlbsfunc(self)
         elif self.key == 3 : ctrlcfunc(self)
+        elif self.key == 12 : ctrllfunc(self)
+        elif self.key == 6 : ctrlffunc(self)
         elif 1 <= self.key <= 26 : pass #skip unused ctrl bindings
         elif self.key == 27 : pass
         else:defaultfunc(self)
@@ -68,6 +70,28 @@ def doinput(self, curses):
             t.cx += 1
         if not self.ck in ['\t'] and not self.key in [curses.KEY_UP, curses.KEY_DOWN,
                         curses.KEY_LEFT, curses.KEY_RIGHT]: t.hi = -1
+    elif self.mode == 'fileselect':
+        if self.key == curses.KEY_UP:
+            self.fi -= 1
+            if self.fi < 0 : self.fi = 0
+        elif self.key == curses.KEY_DOWN:
+            self.fi += 1
+            if self.fi > len(self.filelist): self.fi = len(self.filelist)
+            
+        elif self.ck == '\n':
+            if self.fi < len(self.filelist):
+                self.changefile(self.filelist[self.fi])
+            else : self.mode = 'newfilename'
+    elif self.mode == 'newfilename':
+        if self.key in [curses.KEY_BACKSPACE, 127]:
+            if len(self.newfname) > 0: self.newfname = self.newfname[:-1]
+        elif self.ck == '\n':
+            if len(self.newfname) > 0: self.changefile(self.newfname)
+            else:
+                self.newfname = ''
+                self.mode = 'edit'
+        else:
+            self.newfname += self.ck
     else : int('a') #if this is ever called something went wrong
 
     if not self.key in [21, 26, 25] : self.redoq = []
@@ -127,7 +151,7 @@ def doinput(self, curses):
     if self.mode == 'edit' and not self.key in [curses.KEY_UP, curses.KEY_DOWN,
                         curses.KEY_LEFT, curses.KEY_RIGHT]:
         self.undoq.append(ministate(self.lines, self.cx, self.cy))
-        while len(self.undoq) > 50 : self.undoq.pop(0)
+        while len(self.undoq) > 30 : self.undoq.pop(0)
 
     #autosave after every couple keystrokes
     self.keystrokes += 1

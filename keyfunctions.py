@@ -1,4 +1,5 @@
 import tkinter
+import subprocess
 
 def upfunc(self):
     if self.isautocomp : self.aci -= 1
@@ -191,12 +192,7 @@ def ctrlqfunc(self):
 
 def ctrlxfunc(self):
     line = self.lines[self.cy]
-    r = tkinter.Tk()
-    r.withdraw()
-    r.clipboard_clear()
-    r.clipboard_append(line)
-    r.update() # now it stays on the clipboard after the window is closed
-    r.destroy()
+    copy(line)
     if len(self.lines) > 1:
         self.lines.pop(self.cy)
     else:
@@ -215,13 +211,18 @@ def ctrlbsfunc(self):
 
 def ctrlcfunc(self):
     line = self.lines[self.cy]
-    r = tkinter.Tk()
-    r.withdraw()
-    r.clipboard_clear()
-    r.clipboard_append(line)
-    r.update() # now it stays on the clipboard after the window is closed
-    r.destroy()
-    self.message = 'Copied: {}...'.format(line[:30])
+    copy(line)
+    self.message = 'Copied: {}...'.format(line[:60])
+
+def ctrllfunc(self):
+    if self.cx > 0 : self.cx = 0
+    else:
+        l = len(self.lines[self.cy])
+        self.cx = l if l > self.editw - 1 else self.editw - 1
+
+def ctrlffunc(self):
+    self.fi = 0
+    self.mode = 'fileselect'
 
 def altzfunc(self):
     self.showkeycodes = not self.showkeycodes
@@ -231,3 +232,5 @@ def defaultfunc(self):
     self.lines[self.cy] = l[:self.cx] + self.ck + l[self.cx:]
     self.cx += 1
 
+def copy(s):
+    subprocess.Popen(['java', 'Copier', s], stdout=subprocess.PIPE)

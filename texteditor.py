@@ -6,6 +6,8 @@ import inputfunc
 import json
 import terminal
 
+filelist = []
+
 class editor:
     def __init__(self, scr, file):
         self.mode = 'edit'
@@ -29,6 +31,11 @@ class editor:
         f.close()
         self.filename = file
         self.lines = txt.split('\n')
+        if self.filename in filelist : filelist.remove(self.filename)
+        filelist.insert(0, self.filename)
+        self.filelist = filelist
+        self.fi = 0
+        self.newfname = ''
         self.keystrokes = 0
         self.message = 'Welcome! Press ctrl-q for help'
         self.showkeycodes = False
@@ -142,6 +149,24 @@ class editor:
             x = t.cx + len(t.pref)
             if x >= self.scrw : x = self.scrw - 1
             self.scr.addstr(self.scrh - 2, x, (t.s + ' ')[t.cx], curses.color_pair(7))
+        #fileselect
+        elif self.mode == 'fileselect':
+            while len(filelist) > self.edith - 2 and len(filelist) > 0: filelist.pop()
+            banner = 'Choose file:'
+            maxc = len(banner)
+            for s in filelist:
+                if len(s) > maxc : maxc = len(s)
+            self.scr.addstr(0, 0, spacebuf(banner, maxc), curses.color_pair(8))
+            for i in range(len(filelist)):
+                s = filelist[i]
+                c = 10
+                if self.fi == i : c = 11
+                self.scr.addstr(i + 1, 0, spacebuf(s, maxc), curses.color_pair(c))
+            nc = 10
+            if self.fi == len(filelist) : nc = 11
+            self.scr.addstr(len(filelist) + 1, 0, spacebuf('New...', maxc), curses.color_pair(nc))
+        elif self.mode == 'newfilename':
+            self.scr.addstr(0, 0, 'Enter file name: ' + self.newfname, curses.color_pair(10))
 
         #help display
         if self.ishelpon:
@@ -163,6 +188,14 @@ class editor:
             #debug('{} {}'.format(self.ck, self.key))
             self.scr.addstr(0, 0, '{} {}'.format(self.ck, self.key), curses.color_pair(4))
 
+    def changefile(self, filename):
+        file = open(self.filename, 'w')
+        file.write('\n'.join(self.lines))
+        file.close()
+        open(filename, 'a').close()
+        global e
+        e = editor(screen, filename)
+
 def spacebuf(s, n) : return s + ' ' * (n - len(s)) if n > len(s) else s
 
 def isalnum(s):
@@ -178,6 +211,8 @@ def debug(s):
     f.close()
             
 def draw(scr):
+    global screen
+    screen = scr
     curses.raw() #disable certain keybindings
     #set up colors
     curses.use_default_colors()
@@ -190,13 +225,16 @@ def draw(scr):
     curses.init_pair(6, 4, 7)
     curses.init_pair(7, 7, 4)
     curses.init_pair(8, 6, 7) 
-    curses.init_pair(9, 5, white) 
+    curses.init_pair(9, 5, white)
+    curses.init_pair(10, 5, 7)
+    curses.init_pair(11, 7, 5)
     scr.erase()
     scr.refresh()
     height, width = scr.getmaxyx()
     for i in range(height-1):
         scr.addstr(i, 0, ' ' * (width), curses.color_pair(1))
     if not os.path.isfile(filename) : open(filename, 'a').close()
+    global e
     e = editor(scr, filename)
     while e.key != 27: #quit on escape
         e.refresh()
