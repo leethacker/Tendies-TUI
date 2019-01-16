@@ -1,12 +1,14 @@
 import curses
 import sys
 import os.path
+import os
 import re
 import inputfunc
 import json
 import terminal
 
 filelist = []
+posmems = {}
 
 class editor:
     def __init__(self, scr, file):
@@ -24,6 +26,12 @@ class editor:
         #screen positioning
         self.sx = 0
         self.sy = 0
+        if file in posmems.keys():
+            p = posmems[file]
+            self.cx = p.cx
+            self.cy = p.cy
+            self.sx = p.sx
+            self.sy = p.sy
         self.key = 0
         self.ck = ''
         f = open(file, 'r')
@@ -86,6 +94,7 @@ class editor:
                                    (self.editw - len(self.lines[i])))
                             [self.sx:self.sx+self.editw], curses.color_pair(1))
             line = self.lines[self.sy + i]
+            #highlighting
             for h in self.highlight:
                 found = [m.start() for m in re.finditer('\\b{}\\b'.format(h),
                                                         line)]
@@ -95,6 +104,53 @@ class editor:
                         self.scr.addstr(i, x, h, curses.color_pair(9))
             self.scr.addstr(i+1, lnlen, ' ', curses.color_pair(1))
             ln = str(self.sy + i + 1)
+            #strings
+            l = line[self.sx:self.sx+self.editw]
+            strposs = []
+            state = 'none'
+            skip = False
+            for j in range(len(line)):
+                c = line[j]
+                if not skip:
+                    if c == '\\':
+                        if state in ['instr', 'inchar'] : strposs[-1].s += c
+                        skip = True
+                    elif c == '"':
+                        if state == 'none':
+                            state = 'instr'
+                            strposs.append(strpos(j))
+                            strposs[-1].s += c
+                        else:
+                            if state == 'instr' : state = 'none'
+                            strposs[-1].s += c
+                    elif c == "'":
+                        if state == 'none':
+                            state = 'inchar'
+                            strposs.append(strpos(j))
+                            strposs[-1].s += c
+                        else:
+                            if state == 'inchar' : state = 'none'
+                            strposs[-1].s += c
+                    else:
+                        if state in ['instr', 'inchar'] : strposs[-1].s += c
+                else:
+                    if state in ['instr', 'inchar'] : strposs[-1].s += c
+                    skip = False
+            for sp in strposs:
+                sp.x -= self.sx
+                if sp.x + len(sp.s) >= 0 and sp.x < self.editw:
+                    x = sp.x
+                    s = sp.s
+                    if x < 0:
+                        s = s[-x:]
+                        x = 0
+                    if x + len(s) > self.editw:
+                        s = s[:self.editw-x]
+                    self.scr.addstr(i, lnlen + x, s, curses.color_pair(12))
+            #comments
+            stripped = line.lstrip()
+            if len(stripped) > 0 and stripped[0:1] == '#' or stripped[0:2] == '//':
+                self.scr.addstr(i, lnlen, l, curses.color_pair(13))
             #draw line numbers
             self.scr.addstr(i, 0, ' ' * (lnlen - len(ln) - 1) + ln + '|',
                             curses.color_pair(5))
@@ -151,7 +207,7 @@ class editor:
             self.scr.addstr(self.scrh - 2, x, (t.s + ' ')[t.cx], curses.color_pair(7))
         #fileselect
         elif self.mode == 'fileselect':
-            while len(filelist) > self.edith - 2 and len(filelist) > 0: filelist.pop()
+            while len(filelist) > self.edith - 3 and len(filelist) > 0: filelist.pop()
             banner = 'Choose file:'
             maxc = len(banner)
             for s in filelist:
@@ -159,14 +215,14 @@ class editor:
             self.scr.addstr(0, 0, spacebuf(banner, maxc), curses.color_pair(8))
             for i in range(len(filelist)):
                 s = filelist[i]
-                c = 10
-                if self.fi == i : c = 11
+                c = 6
+                if self.fi == i : c = 7
                 self.scr.addstr(i + 1, 0, spacebuf(s, maxc), curses.color_pair(c))
-            nc = 10
-            if self.fi == len(filelist) : nc = 11
+            nc = 6
+            if self.fi == len(filelist) : nc = 7
             self.scr.addstr(len(filelist) + 1, 0, spacebuf('New...', maxc), curses.color_pair(nc))
         elif self.mode == 'newfilename':
-            self.scr.addstr(0, 0, 'Enter file name: ' + self.newfname, curses.color_pair(10))
+            self.scr.addstr(0, 0, 'Enter file name: ' + self.newfname, curses.color_pair(7))
 
         #help display
         if self.ishelpon:
@@ -188,13 +244,40 @@ class editor:
             #debug('{} {}'.format(self.ck, self.key))
             self.scr.addstr(0, 0, '{} {}'.format(self.ck, self.key), curses.color_pair(4))
 
+    def save(self):
+        file = open(self.filename, 'w')
+        file.write('\n'.join(self.lines))
+        file.close()
+
     def changefile(self, filename):
         file = open(self.filename, 'w')
         file.write('\n'.join(self.lines))
         file.close()
+
+        posmems[self.filename] = posmem(self.sx, self.sy, self.cx, self.cy)
+        
         open(filename, 'a').close()
         global e
         e = editor(screen, filename)
+        e.terminal = self.terminal
+
+    def updatefilelist(self):
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        for f in files:
+            if not f in filelist:
+                filelist.append(f)
+
+class strpos:
+    def __init__(self, x):
+        self.x = x
+        self.s = ''
+
+class posmem:
+    def __init__(self, sx, sy, cx, cy):
+        self.sx = sx
+        self.sy = sy
+        self.cx = cx
+        self.cy = cy
 
 def spacebuf(s, n) : return s + ' ' * (n - len(s)) if n > len(s) else s
 
@@ -214,6 +297,7 @@ def draw(scr):
     global screen
     screen = scr
     curses.raw() #disable certain keybindings
+    curses.curs_set(0)
     #set up colors
     curses.use_default_colors()
     white = -1
@@ -228,11 +312,17 @@ def draw(scr):
     curses.init_pair(9, 5, white)
     curses.init_pair(10, 5, 7)
     curses.init_pair(11, 7, 5)
+    curses.init_pair(12, 2, white)
+    curses.init_pair(13, 7, white)
     scr.erase()
     scr.refresh()
     height, width = scr.getmaxyx()
     for i in range(height-1):
         scr.addstr(i, 0, ' ' * (width), curses.color_pair(1))
+
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    for f in files : filelist.append(f)
+        
     if not os.path.isfile(filename) : open(filename, 'a').close()
     global e
     e = editor(scr, filename)

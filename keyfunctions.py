@@ -1,5 +1,6 @@
 import tkinter
 import subprocess
+import os
 
 def upfunc(self):
     if self.isautocomp : self.aci -= 1
@@ -32,6 +33,7 @@ def rightfunc(self):
 def backfunc(self):
     if self.cx > 0:
         l = self.lines[self.cy]
+        if self.cx > len(l) : self.cx = len(l)
         self.lines[self.cy] = l[:self.cx-1] + l[self.cx:]
         self.cx -= 1
     elif self.cx == 0 and self.cy > 0:
@@ -58,7 +60,9 @@ def enterfunc(self):
             if not l[i].isspace() or i >= self.cx: break
             else : ind += l[i]
         nind = ind
-        if self.cx > 0 and self.cx <= len(l) and l[self.cx-1] in [':', '{'] : nind += ' ' * 4
+        limcx = self.cx
+        if limcx > len(l) : limcx = len(l)
+        if limcx > 0 and l[limcx-1] in [':', '{'] : nind += ' ' * 4
         self.lines[self.cy] = l[:self.cx]
         if self.cx < len(l) and l[self.cx] == '}':
             self.lines.insert(self.cy + 1, ind + l[self.cx:])
@@ -177,6 +181,7 @@ def ctrlkfunc(self):
 
 def ctrlpfunc(self):
     if self.mode != 'terminal':
+        self.save()
         self.message = 'Opened terminal'
         self.mode = 'terminal'
     else : self.mode = 'edit'
@@ -221,6 +226,7 @@ def ctrllfunc(self):
         self.cx = l if l > self.editw - 1 else self.editw - 1
 
 def ctrlffunc(self):
+    self.updatefilelist()
     self.fi = 0
     self.mode = 'fileselect'
 
@@ -233,4 +239,9 @@ def defaultfunc(self):
     self.cx += 1
 
 def copy(s):
+    owd = os.getcwd()
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)    
+    os.chdir(dname)
     subprocess.Popen(['java', 'Copier', s], stdout=subprocess.PIPE)
+    os.chdir(owd)

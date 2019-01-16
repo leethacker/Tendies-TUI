@@ -29,3 +29,7 @@ try
 while
 with
 yield
+None
+len
+True
+False

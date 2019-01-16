@@ -33,6 +33,7 @@ class terminal:
         result = self.command(self.s)
         self.s = ''
         self.cx = 0
+        self.sy = 0
         return result
     def getlines(self, w):
         sp = self.record.split('\n')

@@ -76,12 +76,12 @@ def doinput(self, curses):
             if self.fi < 0 : self.fi = 0
         elif self.key == curses.KEY_DOWN:
             self.fi += 1
-            if self.fi > len(self.filelist): self.fi = len(self.filelist)
-            
+            if self.fi > len(self.filelist): self.fi = len(self.filelist)            
         elif self.ck == '\n':
             if self.fi < len(self.filelist):
                 self.changefile(self.filelist[self.fi])
             else : self.mode = 'newfilename'
+        elif self.key == 6 : self.mode = 'edit'
     elif self.mode == 'newfilename':
         if self.key in [curses.KEY_BACKSPACE, 127]:
             if len(self.newfname) > 0: self.newfname = self.newfname[:-1]
@@ -90,6 +90,7 @@ def doinput(self, curses):
             else:
                 self.newfname = ''
                 self.mode = 'edit'
+        elif self.key == 6 : self.mode = 'edit'
         else:
             self.newfname += self.ck
     else : int('a') #if this is ever called something went wrong
