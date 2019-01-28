@@ -15,12 +15,12 @@ def downfunc(self):
         else : self.cy += 1
         
 def leftfunc(self):
-    if self.cx == 0 and self.cy >= 1:
+    l = len(self.lines[self.cy])
+    if (self.cx == 0 or l == 0) and self.cy >= 1:
         self.cy -= 1
         self.cx = len(self.lines[self.cy])
     else:
         self.cx -= 1
-        l = len(self.lines[self.cy])
         if self.cx >= l : self.cx = l - 1
         
 def rightfunc(self):
@@ -31,12 +31,12 @@ def rightfunc(self):
         self.cy += 1
         
 def backfunc(self):
-    if self.cx > 0:
+    if self.cx > 0 and len(self.lines[self.cy]) > 0:
         l = self.lines[self.cy]
         if self.cx > len(l) : self.cx = len(l)
         self.lines[self.cy] = l[:self.cx-1] + l[self.cx:]
         self.cx -= 1
-    elif self.cx == 0 and self.cy > 0:
+    elif (self.cx == 0 or len(self.lines[self.cy]) == 0) and self.cy > 0:
         self.cx = len(self.lines[self.cy - 1])
         self.lines[self.cy - 1] += self.lines[self.cy]
         self.lines.pop(self.cy)
@@ -62,9 +62,12 @@ def enterfunc(self):
         nind = ind
         limcx = self.cx
         if limcx > len(l) : limcx = len(l)
-        if limcx > 0 and l[limcx-1] in [':', '{'] : nind += ' ' * 4
+        canrb = False
+        if limcx > 0 and l[limcx-1] in [':', '{']:
+            nind += ' ' * 4
+            canrb = True
         self.lines[self.cy] = l[:self.cx]
-        if self.cx < len(l) and l[self.cx] == '}':
+        if canrb and self.cx < len(l) and l[self.cx] == '}':
             self.lines.insert(self.cy + 1, ind + l[self.cx:])
             l = l[:self.cx]
         self.lines.insert(self.cy + 1, nind + l[self.cx:])
@@ -73,28 +76,37 @@ def enterfunc(self):
         
 def parenfunc(self):
     l = self.lines[self.cy]
+    if self.cx > len(l) : self.cx = len(l)
     self.lines[self.cy] = l[:self.cx] + self.ck + ')' + l[self.cx:]
     self.cx += 1
     
 def squarebracketfunc(self):
     l = self.lines[self.cy]
+    if self.cx > len(l) : self.cx = len(l)
     self.lines[self.cy] = l[:self.cx] + self.ck + ']' + l[self.cx:]
     self.cx += 1
     
 def bracketfunc(self):
     l = self.lines[self.cy]
+    if self.cx > len(l) : self.cx = len(l)
     self.lines[self.cy] = l[:self.cx] + self.ck + '}' + l[self.cx:]
     self.cx += 1
     
 def quotefunc(self):
     l = self.lines[self.cy]
-    self.lines[self.cy] = l[:self.cx] + self.ck + '"' + l[self.cx:]
-    self.cx += 1
-    
+    if self.cx < len(l) and l[self.cx] == '"': self.cx += 1
+    else:
+        if self.cx > len(l) : self.cx = len(l)
+        self.lines[self.cy] = l[:self.cx] + self.ck + '"' + l[self.cx:]
+        self.cx += 1
+        
 def apostrophefunc(self):
     l = self.lines[self.cy]
-    self.lines[self.cy] = l[:self.cx] + self.ck + "'" + l[self.cx:]
-    self.cx += 1
+    if self.cx < len(l) and l[self.cx] == "'": self.cx += 1
+    else:
+        if self.cx > len(l) : self.cx = len(l)
+        self.lines[self.cy] = l[:self.cx] + self.ck + "'" + l[self.cx:]
+        self.cx += 1
 
 def rightparenfunc(self):
     l = self.lines[self.cy]
@@ -130,12 +142,16 @@ def ctrlspacefunc(self):
     else : self.isautocomp = False
 
 def ctrlvfunc(self):
-    r = tkinter.Tk()
-    s = r.clipboard_get()
+    fc = getclipboard()
+    
+    if self.localcpy == '' or self.foreigncpy != fc:
+        s = fc
+    else:
+        s = self.localcpy
+        
     s = s.replace('\t', ' ' * 4)
-    r.withdraw()
-    r.update()
-    r.destroy()
+    
+
     self.message = 'Pasting {} chars: {}...'.format(len(s),
                                                     s[:30].replace('\n', ' '))
     curline = self.lines[self.cy]
@@ -197,7 +213,7 @@ def ctrlqfunc(self):
 
 def ctrlxfunc(self):
     line = self.lines[self.cy]
-    copy(line)
+    copy(self, line)
     if len(self.lines) > 1:
         self.lines.pop(self.cy)
     else:
@@ -209,14 +225,15 @@ def ctrlrbfunc(self):
     self.cy = self.sy
     
 def ctrlbsfunc(self):
-    self.sy += self.edith
-    if self.sy > len(self.lines) - self.edith + 1:
-        self.sy = len(self.lines) - self.edith + 1
+    if len(self.lines) >= self.edith:
+        self.sy += self.edith
+        if self.sy > len(self.lines) - self.edith + 1:
+            self.sy = len(self.lines) - self.edith + 1
     self.cy = self.sy
 
 def ctrlcfunc(self):
     line = self.lines[self.cy]
-    copy(line)
+    copy(self, line)
     self.message = 'Copied: {}...'.format(line[:60])
 
 def ctrllfunc(self):
@@ -238,10 +255,22 @@ def defaultfunc(self):
     self.lines[self.cy] = l[:self.cx] + self.ck + l[self.cx:]
     self.cx += 1
 
-def copy(s):
+def copyjava(s):
     owd = os.getcwd()
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)    
     os.chdir(dname)
     subprocess.Popen(['java', 'Copier', s], stdout=subprocess.PIPE)
     os.chdir(owd)
+
+def getclipboard():
+    r = tkinter.Tk()
+    s = r.clipboard_get()
+    r.withdraw()
+    r.update()
+    r.destroy()
+    return s
+
+def copy(self, s):
+    self.localcpy = s
+    self.foreigncpy = getclipboard()

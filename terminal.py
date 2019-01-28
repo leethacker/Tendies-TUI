@@ -13,12 +13,14 @@ class terminal:
         self.hi = -1
         self.s = ''
         self.history = []
+        self.p = None
     def command(self, inpt):
         self.history.append(inpt)
         self.record += self.pref + inpt + '\n'
-        process = subprocess.Popen(inpt, shell=True,
+        process = subprocess.Popen('exec ' + inpt, shell=True,
                                stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)                               
+                               stderr=subprocess.PIPE)
+        self.p = process
         
         out, err = process.communicate()
         out = out.decode('utf-8')
@@ -35,6 +37,10 @@ class terminal:
         self.cx = 0
         self.sy = 0
         return result
+    def kill(self):
+        if self.p != None:
+            self.p.kill()
+            self.p = None
     def getlines(self, w):
         sp = self.record.split('\n')
         result = []
