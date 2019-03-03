@@ -236,6 +236,10 @@ def ctrlcfunc(self):
     copy(self, line)
     self.message = 'Copied: {}...'.format(line[:60])
 
+def ctrlafunc(self):
+    txt = '\n'.join(self.lines)
+    copyjava(txt)
+
 def ctrllfunc(self):
     if self.cx > 0 : self.cx = 0
     else:

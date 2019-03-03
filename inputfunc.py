@@ -38,6 +38,7 @@ def doinput(self, curses):
         elif self.key == 3 : ctrlcfunc(self)
         elif self.key == 12 : ctrllfunc(self)
         elif self.key == 6 : ctrlffunc(self)
+        elif self.key == 1 : ctrlafunc(self)
         elif 1 <= self.key <= 26 : pass #skip unused ctrl bindings
         elif self.key == 410 : pass
         elif self.key == 27 : pass
@@ -71,6 +72,7 @@ def doinput(self, curses):
         elif self.key == 3:
             t.kill()
         elif self.key >= 1 and self.key <= 26 : pass
+        elif self.key == 410 : pass
         else:
             t.s = t.s[:t.cx] + self.ck + t.s[t.cx:]
             t.cx += 1

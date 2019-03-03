@@ -14,10 +14,13 @@ class terminal:
         self.s = ''
         self.history = []
         self.p = None
+        self.filename = ''
     def command(self, inpt):
         self.history.append(inpt)
         self.record += self.pref + inpt + '\n'
-        process = subprocess.Popen('exec ' + inpt, shell=True,
+        pref = 'source ~/.bash_profile && f="{}" && '.format(self.filename)
+        #if len(inpt) > 2 and inpt[:2] == './' : pref = ''
+        process = subprocess.Popen(pref + inpt, shell=True,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
         self.p = process
@@ -30,6 +33,7 @@ class terminal:
         self.record += out + err + '\n'
         if inpt.strip() == 'clear':
             self.record = ''
+        self.record = self.record[-10000:]
         return out, err
     def run(self):
         result = self.command(self.s)

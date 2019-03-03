@@ -14,6 +14,7 @@ class editor:
     def __init__(self, scr, file):
         self.mode = 'edit'
         self.terminal = terminal.terminal()
+        self.terminal.filename = file
         self.scr = scr
         height, width = scr.getmaxyx()
         self.scrh = height
@@ -302,6 +303,7 @@ class editor:
         global e
         e = editor(screen, filename)
         e.terminal = self.terminal
+        e.terminal.filename = filename
 
     def updatefilelist(self):
         files = [f for f in os.listdir('.') if os.path.isfile(f)]
